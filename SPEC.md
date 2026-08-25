@@ -232,6 +232,9 @@ somewhere client-side:
   backups. This is workable for a low-frequency, single-user workflow (walk
   the archive, then export and load into the reporting device weekly) but
   is manual.
+- **Optional automation:** §7.6 below adds a Google Drive sync option that
+  automates this same export/import bundle instead of moving files by hand.
+  It's still push/pull on request, not real-time — see §9.
 
 
 ### 7.4 Offline support
@@ -244,6 +247,36 @@ which fits naturally with the on-device storage model in §7.3.
 Stored as blobs in IndexedDB, downscaled on capture to keep storage
 reasonable (iPad Safari IndexedDB has practical size limits). Included in
 the export/import bundle. Not uploaded anywhere externally.
+
+### 7.6 Google Drive sync (optional)
+
+Automates §7.3's export/import bundle over the user's own Google Drive
+instead of manual file transfer, while keeping the "no backend" constraint —
+it's a client-side OAuth flow plus direct calls to the Drive REST API, no
+server of ours involved.
+
+- **Auth**: Google Identity Services (GIS) token flow, scope
+  `drive.file` — the app can only see/modify files it created itself, never
+  the rest of the user's Drive. Tokens are session-only (not persisted); the
+  user reconnects each session (or when the ~1hr token expires).
+- **Storage shape**: one file, `c-rat-o-backup.json`, holding the exact same
+  bundle `exportBundle()` already produces (all data + photos as base64) —
+  found by filename via `drive.file`'s search scope, not a fixed ID.
+- **Sync model**: manual **Push** / **Pull**, not automatic or real-time.
+  Push writes the full local state to Drive (creating the file on first use,
+  updating it after); Pull downloads and replaces all local state, same as
+  the manual Import already does.
+- **Conflict guard**: before a Push, the app compares the Drive file's
+  `modifiedTime` against the timestamp this device last synced. If Drive has
+  moved on since (i.e. another device pushed in between), the user is
+  warned before an overwrite is allowed, rather than silently clobbering it.
+  This is a guard, not real merging — see the accepted trade-off in §9.
+- **Setup** (manual, one-time, in the user's own Google account): Google
+  Cloud Console → APIs & Services → Credentials → Create Credentials → OAuth
+  client ID → Application type "Web application" → add the deployed site's
+  URL (e.g. `https://benfoley.github.io`) under "Authorized JavaScript
+  origins" → paste the resulting client ID into Admin → Backup & data →
+  Google Drive sync. No API key or client secret needed for this flow.
 
 ## 8. Non-functional requirements
 
@@ -264,7 +297,8 @@ the export/import bundle. Not uploaded anywhere externally.
 - User accounts, permissions, multi-user concurrent editing.
 - Automated species identification from photos.
 - Real-time push notifications/reminders for trap check schedules.
-- Cross-device real-time sync.
+- Cross-device *real-time* sync — §7.6's Drive sync is manual push/pull,
+  not automatic or live.
 - Treatment/action tracking beyond reporting (e.g. no workflow for logging
   pesticide application, contractor visits, etc., unless requested).
 
@@ -281,3 +315,4 @@ None
 4. Reporting: filters, tables, then charts.
 5. Export/import (config + full data backup).
 6. PWA/offline polish, iPad UX pass, GitHub Actions deploy pipeline.
+7. Optional: Google Drive sync (§7.6).

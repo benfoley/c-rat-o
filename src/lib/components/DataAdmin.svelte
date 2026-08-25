@@ -1,6 +1,7 @@
 <script lang="ts">
   import { bundleToJsonFile, exportBundle, exportConfigBundle, importBundle, type DataBundle } from '../exportImport'
   import { loadAll } from '../stores'
+  import GoogleDriveSync from './GoogleDriveSync.svelte'
 
   let importing = $state(false)
   let message: string | null = $state(null)
@@ -81,3 +82,5 @@
   {#if importing}<p class="muted">Importing…</p>{/if}
   {#if message}<p>{message}</p>{/if}
 </div>
+
+<GoogleDriveSync />
