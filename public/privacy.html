@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>c-rat-o — Privacy Policy &amp; Terms of Service</title>
+    <style>
+      :root {
+        --bg: #fafaf8;
+        --surface: #ffffff;
+        --border: #dcdad2;
+        --text: #26241f;
+        --text-muted: #6b6759;
+        --accent: #2f5233;
+        --radius: 10px;
+        --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 var(--sans);
+      }
+
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+      }
+
+      header {
+        margin-bottom: 2rem;
+      }
+
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.5rem;
+        color: var(--accent);
+      }
+
+      .effective-date {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      nav.toc {
+        display: flex;
+        gap: 1rem;
+        margin: 1.25rem 0 2rem;
+        padding: 0.75rem 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+
+      nav.toc a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      nav.toc a:hover {
+        text-decoration: underline;
+      }
+
+      section {
+        margin-bottom: 2.5rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.4rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+      }
+
+      p {
+        margin: 0.4rem 0 1rem;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      footer {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>c-rat-o — Privacy Policy &amp; Terms of Service</h1>
+        <p class="effective-date">Effective date: 26 August 2026</p>
+      </header>
+
+      <nav class="toc" aria-label="Sections">
+        <a href="#privacy-policy">Privacy Policy</a>
+        <a href="#terms-of-service">Terms of Service</a>
+      </nav>
+
+      <p>
+        c-rat-o (&ldquo;the App&rdquo;) is a client-side application for recording and reporting
+        insect pest monitoring data within an archive. It is developed and maintained by Ben
+        Foley (&ldquo;the developer&rdquo;). This document describes how the App handles data and
+        the terms under which it is provided.
+      </p>
+
+      <section id="privacy-policy">
+        <h2>Privacy Policy</h2>
+
+        <h3>1. Data storage</h3>
+        <p>
+          The App has no server component. All data entered into the App — trap and room
+          configuration, species and season lists, trap-check records, and trap photographs — is
+          stored locally in the web browser&rsquo;s storage on the device in use. The developer
+          does not receive, collect, or have access to this data.
+        </p>
+
+        <h3>2. Google Drive integration</h3>
+        <p>
+          The App offers an optional feature to back up and synchronize the data described above
+          via the user&rsquo;s own Google Drive account, using Google&rsquo;s
+          <code>drive.file</code> scope. Under this scope the App can access only the files it has
+          itself created in the user&rsquo;s Drive; it cannot view, modify, or delete any other
+          file. Authentication is handled entirely in the browser: access tokens are held in
+          memory for the current session only and are never sent to, or stored on, any server
+          operated by the developer. The only data written to Drive is a single backup file
+          containing the data described in Section 1.
+        </p>
+
+        <h3>3. No tracking or third-party sharing</h3>
+        <p>
+          The App does not use cookies, analytics, advertising, or tracking technologies, and does
+          not transmit data to any third party. The sole exception is the user&rsquo;s own Google
+          Drive, accessed only if and when the user explicitly enables the sync feature described
+          in Section 2.
+        </p>
+
+        <h3>4. Data retention and deletion</h3>
+        <p>
+          Locally stored data persists until the user clears their browser&rsquo;s site data or
+          removes it using the App&rsquo;s own data-reset function. Data stored in the
+          user&rsquo;s Google Drive persists until the user deletes it or revokes the App&rsquo;s
+          access via their
+          <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer"
+            >Google Account permissions</a
+          >.
+        </p>
+
+        <h3>5. Changes to this policy</h3>
+        <p>
+          This policy may be revised from time to time. The effective date above reflects the date
+          of the most recent revision.
+        </p>
+      </section>
+
+      <section id="terms-of-service">
+        <h2>Terms of Service</h2>
+
+        <h3>1. Acceptance of terms</h3>
+        <p>By using the App, you agree to these terms.</p>
+
+        <h3>2. Description of service</h3>
+        <p>
+          The App is provided free of charge for the purpose of recording and reporting insect
+          pest monitoring data. It is provided &ldquo;as is&rdquo;, without warranty of any kind,
+          express or implied, including without limitation any warranty of fitness for a
+          particular purpose or of data accuracy.
+        </p>
+
+        <h3>3. User responsibility</h3>
+        <p>
+          Users are responsible for the accuracy of the data they enter and for maintaining their
+          own backups, whether by manual export or via the Google Drive sync feature. The
+          developer is not responsible for any loss of data.
+        </p>
+
+        <h3>4. Limitation of liability</h3>
+        <p>
+          To the maximum extent permitted by law, the developer shall not be liable for any
+          damages arising from the use of, or inability to use, the App.
+        </p>
+
+        <h3>5. Contact</h3>
+        <p>
+          Questions regarding this policy or these terms may be directed to
+          <a href="mailto:b.foley@uq.edu.au">b.foley@uq.edu.au</a>.
+        </p>
+      </section>
+
+      <footer>c-rat-o — archive pest monitoring</footer>
+    </main>
+  </body>
+</html>
