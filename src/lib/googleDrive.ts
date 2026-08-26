@@ -10,6 +10,7 @@
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
 const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files'
+const DRIVE_ABOUT_URL = 'https://www.googleapis.com/drive/v3/about'
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const UPLOAD_BOUNDARY = 'c-rat-o-multipart-boundary'
 const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
@@ -131,6 +132,18 @@ async function driveFetch(accessToken: string, url: string, init: RequestInit = 
 export interface DriveFileRef {
   id: string
   modifiedTime: string
+}
+
+export interface DriveAccountInfo {
+  displayName: string
+  emailAddress: string
+}
+
+/** The Google account the current access token belongs to. */
+export async function getAccountInfo(accessToken: string): Promise<DriveAccountInfo> {
+  const res = await driveFetch(accessToken, `${DRIVE_ABOUT_URL}?fields=user(displayName,emailAddress)`)
+  const data = (await res.json()) as { user: DriveAccountInfo }
+  return data.user
 }
 
 export function buildFindBackupFileUrl(opts: { filename?: string; folderId?: string } = {}): string {

@@ -25,6 +25,7 @@ export const driveClientId = writable<string>(
       : '',
 )
 export const driveConnected = writable(false)
+export const driveAccountEmail = writable<string | null>(null)
 export const driveLastSyncedAt = writable<string | null>(
   typeof window !== 'undefined' ? window.localStorage.getItem(LAST_SYNCED_AT_KEY) : null,
 )
@@ -67,13 +68,16 @@ async function findOrMigrateBackupFile(accessToken: string, folderId: string): P
 
 export async function connect(clientId: string): Promise<void> {
   setClientId(clientId)
-  await drive.requestAccessToken(clientId, { silent: false })
+  const auth = await drive.requestAccessToken(clientId, { silent: false })
+  const account = await drive.getAccountInfo(auth.accessToken)
+  driveAccountEmail.set(account.emailAddress)
   driveConnected.set(true)
 }
 
 export function disconnect(): void {
   drive.signOut()
   driveConnected.set(false)
+  driveAccountEmail.set(null)
 }
 
 /** Thrown when a push/pull would clobber a newer remote change; callers should confirm and retry with `force: true`. */

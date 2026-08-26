@@ -3,6 +3,7 @@
     RemoteChangedError,
     connect,
     disconnect,
+    driveAccountEmail,
     driveClientId,
     driveConnected,
     driveLastSyncedAt,
@@ -116,7 +117,7 @@
       {busy ? 'Connecting…' : hasBakedInClientId ? 'Sign in with Google' : 'Connect Google Drive'}
     </button>
   {:else}
-    <p class="pill status-active">Connected</p>
+    <p class="pill status-active">Connected{#if $driveAccountEmail} as {$driveAccountEmail}{/if}</p>
     {#if $driveLastSyncedAt}
       <p class="muted">Last synced: {new Date($driveLastSyncedAt).toLocaleString()}</p>
     {/if}
