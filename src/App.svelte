@@ -3,7 +3,8 @@
   import DataInput from './lib/components/DataInput.svelte'
   import Reporting from './lib/components/Reporting.svelte'
   import Admin from './lib/components/Admin.svelte'
-  import { loaded, loadAll, site } from './lib/stores'
+  import { loaded, loadAll } from './lib/stores'
+  import { driveAccountEmail, driveConnected } from './lib/driveSync'
 
   type Mode = 'input' | 'reporting' | 'admin'
   let mode: Mode = $state('input')
@@ -15,7 +16,12 @@
 
 <div class="app-shell">
   <header class="app-header">
-    <h1>c-rat-o<span class="subtitle">{$site ? ` — ${$site.name}` : ''}</span></h1>
+    <div class="header-title">
+      <h1>c-rat-o</h1>
+      {#if $driveConnected}
+        <span class="pill status-active drive-status">Drive: {$driveAccountEmail ?? 'Connected'}</span>
+      {/if}
+    </div>
     <nav class="mode-tabs" aria-label="Mode">
       <button type="button" class:active={mode === 'input'} onclick={() => (mode = 'input')}>
         Data Input

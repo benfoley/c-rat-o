@@ -69,15 +69,20 @@ h4 {
   color: var(--accent-contrast);
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 1.25rem;
 }
 
-.app-header .subtitle {
+.drive-status {
   font-weight: 400;
-  opacity: 0.85;
-  font-size: 1rem;
 }
 
 .mode-tabs {
