@@ -271,12 +271,24 @@ server of ours involved.
   moved on since (i.e. another device pushed in between), the user is
   warned before an overwrite is allowed, rather than silently clobbering it.
   This is a guard, not real merging — see the accepted trade-off in §9.
-- **Setup** (manual, one-time, in the user's own Google account): Google
-  Cloud Console → APIs & Services → Credentials → Create Credentials → OAuth
-  client ID → Application type "Web application" → add the deployed site's
-  URL (e.g. `https://benfoley.github.io`) under "Authorized JavaScript
-  origins" → paste the resulting client ID into Admin → Backup & data →
-  Google Drive sync. No API key or client secret needed for this flow.
+- **Setup**: one OAuth client ID is created once by whoever deploys the app
+  (not by each end user) and baked into the build as `VITE_GOOGLE_CLIENT_ID`,
+  so users just click "Sign in with Google" — no per-user Cloud Console
+  setup, no API key, no client secret. To create it: Google Cloud Console →
+  APIs & Services → Credentials → Create Credentials → OAuth client ID →
+  Application type "Web application" → add the deployed site's URL (e.g.
+  `https://benfoley.github.io`) under "Authorized JavaScript origins" → set
+  `VITE_GOOGLE_CLIENT_ID` as a GitHub Actions repo secret (read by
+  [deploy.yml](.github/workflows/deploy.yml)) or in a local `.env.local` for
+  dev. If it's never set, the UI falls back to asking each user for their
+  own client ID instead (same flow as before), so the app still works
+  unconfigured.
+- **Trade-off**: an unverified Google OAuth app is capped at ~100 total
+  authorized users across everyone using that one client ID. Past that,
+  Google requires app verification (proof of domain ownership, a privacy
+  policy, and review, since `drive.file` is a restricted scope). The
+  per-user-client-ID fallback avoids this cap — each person's usage counts
+  against their own quota — at the cost of a manual setup step for them.
 
 ## 8. Non-functional requirements
 

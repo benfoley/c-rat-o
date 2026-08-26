@@ -34,6 +34,14 @@ Pushing to `main` runs the tests and deploys `dist/` to GitHub Pages via
 [.github/workflows/deploy.yml](./.github/workflows/deploy.yml). Enable Pages
 for the repo under Settings → Pages → Source: "GitHub Actions".
 
+### Google Drive sync (optional)
+
+Set a `VITE_GOOGLE_CLIENT_ID` repo secret (Settings → Secrets and variables →
+Actions) so users can sign in to Drive sync without any setup of their own —
+see [SPEC.md §7.6](./SPEC.md) for how to create the OAuth client ID. For
+local development, copy `.env.example` to `.env.local` and fill it in. Left
+unset, the app falls back to asking each user for their own client ID.
+
 ## Project structure
 
 - `src/lib/*.ts` — data model, storage (IndexedDB via `idb`), and business

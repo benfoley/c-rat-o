@@ -8,8 +8,21 @@ const CLIENT_ID_KEY = 'c-rat-o:google-client-id'
 const LAST_SYNCED_REMOTE_TIME_KEY = 'c-rat-o:google-last-synced-remote-time'
 const LAST_SYNCED_AT_KEY = 'c-rat-o:google-last-synced-at'
 
+/**
+ * A client ID baked into the build (via `VITE_GOOGLE_CLIENT_ID`) lets every
+ * user just sign in, with no per-user Google Cloud Console setup. Falls back
+ * to a manually-entered client ID (stored locally) when the app is built or
+ * forked without one, e.g. for local development.
+ */
+export const bakedInClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()
+export const hasBakedInClientId = bakedInClientId.length > 0
+
 export const driveClientId = writable<string>(
-  typeof window !== 'undefined' ? (window.localStorage.getItem(CLIENT_ID_KEY) ?? '') : '',
+  hasBakedInClientId
+    ? bakedInClientId
+    : typeof window !== 'undefined'
+      ? (window.localStorage.getItem(CLIENT_ID_KEY) ?? '')
+      : '',
 )
 export const driveConnected = writable(false)
 export const driveLastSyncedAt = writable<string | null>(
