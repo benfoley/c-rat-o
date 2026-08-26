@@ -1,11 +1,22 @@
 <script lang="ts">
-  import { bundleToJsonFile, exportBundle, exportConfigBundle, importBundle, type DataBundle } from '../exportImport'
-  import { loadAll } from '../stores'
+  import {
+    bundleToJsonFile,
+    exportBundle,
+    exportConfigBundle,
+    importBundle,
+    resetAllData,
+    type DataBundle,
+  } from '../exportImport'
+  import { populateSampleData } from '../sampleData'
+  import { addStarterSpecies, loadAll } from '../stores'
   import GoogleDriveSync from './GoogleDriveSync.svelte'
 
   let importing = $state(false)
   let message: string | null = $state(null)
   let fileInput: HTMLInputElement | null = $state(null)
+  let seeding = $state(false)
+  let resetting = $state(false)
+  let sampleDataMessage: string | null = $state(null)
 
   function downloadBundle(bundle: DataBundle, filename: string) {
     const blob = bundleToJsonFile(bundle)
@@ -50,6 +61,37 @@
       input.value = ''
     }
   }
+
+  async function handlePopulateSampleData() {
+    seeding = true
+    sampleDataMessage = null
+    try {
+      await populateSampleData()
+      sampleDataMessage =
+        'Sample data added: starter pest list, 2 seasons, 3 rooms, 6 trap locations, 6 observations.'
+    } finally {
+      seeding = false
+    }
+  }
+
+  async function handleResetAllData() {
+    if (
+      !confirm(
+        'This will permanently delete ALL data on this device — every room, trap, species, season, check and photo, not just sample data. This cannot be undone. Continue?',
+      )
+    ) {
+      return
+    }
+    resetting = true
+    sampleDataMessage = null
+    try {
+      await resetAllData()
+      await loadAll()
+      sampleDataMessage = 'All data on this device has been reset.'
+    } finally {
+      resetting = false
+    }
+  }
 </script>
 
 <div class="card">
@@ -81,6 +123,40 @@
   />
   {#if importing}<p class="muted">Importing…</p>{/if}
   {#if message}<p>{message}</p>{/if}
+</div>
+
+<div class="card">
+  <h2>Sample data</h2>
+  <p class="muted">
+    Populate this device with example data to explore the app, or as a starting point for a new
+    deployment.
+  </p>
+  <div class="row">
+    <button type="button" class="btn secondary" onclick={handlePopulateSampleData} disabled={seeding}>
+      {seeding ? 'Populating…' : 'Populate sample data'}
+    </button>
+  </div>
+  <p class="muted">
+    Adds the starter pest list below, 2 seasons, 3 rooms with 2 trap locations each, and 6 sample
+    trap-check observations. Existing species, seasons, rooms, traps and checks are left untouched.
+  </p>
+  <div class="row">
+    <button type="button" class="btn secondary" onclick={addStarterSpecies}>Add starter pest list</button>
+  </div>
+  <p class="muted">
+    Adds a list of common archive pests (silverfish, cockroaches, carpet beetles, clothes moths and
+    more) to the species list on its own, without adding any rooms, traps or observations.
+  </p>
+  <div class="row">
+    <button type="button" class="btn danger" onclick={handleResetAllData} disabled={resetting}>
+      {resetting ? 'Resetting…' : 'Reset all data'}
+    </button>
+  </div>
+  <p class="muted">
+    Permanently deletes <strong>everything</strong> on this device — not just sample data. Export a
+    backup first if you want to keep anything.
+  </p>
+  {#if sampleDataMessage}<p>{sampleDataMessage}</p>{/if}
 </div>
 
 <GoogleDriveSync />

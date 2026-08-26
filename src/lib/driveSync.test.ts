@@ -108,3 +108,11 @@ describe('checkRemoteStatus', () => {
     expect(status).toEqual({ exists: false, modifiedTime: null, changedSinceLastSync: false })
   })
 })
+
+describe('bakedInClientId', () => {
+  it('is unset in this build/test environment, so driveClientId falls back to localStorage', async () => {
+    const { hasBakedInClientId, bakedInClientId } = await import('./driveSync')
+    expect(hasBakedInClientId).toBe(false)
+    expect(bakedInClientId).toBe('')
+  })
+})

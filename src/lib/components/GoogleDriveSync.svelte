@@ -6,6 +6,7 @@
     driveClientId,
     driveConnected,
     driveLastSyncedAt,
+    hasBakedInClientId,
     pullFromDrive,
     pushToDrive,
     setClientId,
@@ -21,7 +22,8 @@
   }
 
   async function handleConnect() {
-    if (!clientIdDraft.trim()) {
+    const clientId = hasBakedInClientId ? $driveClientId : clientIdDraft.trim()
+    if (!clientId) {
       error = 'Enter a Google OAuth client ID first.'
       return
     }
@@ -29,7 +31,7 @@
     error = null
     message = null
     try {
-      await connect(clientIdDraft.trim())
+      await connect(clientId)
       message = 'Connected to Google Drive.'
     } catch (err) {
       error = err instanceof Error ? err.message : String(err)
@@ -91,24 +93,27 @@
   </p>
 
   {#if !$driveConnected}
-    <div class="field">
-      <label for="drive-client-id">Google OAuth client ID</label>
-      <input
-        id="drive-client-id"
-        bind:value={clientIdDraft}
-        onblur={saveClientId}
-        placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
-      />
-    </div>
-    <p class="muted">
-      Create a free OAuth client ID in the
-      <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer"
-        >Google Cloud Console</a
-      > (APIs &amp; Services → Credentials → Create Credentials → OAuth client ID → Web application),
-      then add this site's URL under "Authorized JavaScript origins". See SPEC.md for step-by-step notes.
-    </p>
+    {#if !hasBakedInClientId}
+      <div class="field">
+        <label for="drive-client-id">Google OAuth client ID</label>
+        <input
+          id="drive-client-id"
+          bind:value={clientIdDraft}
+          onblur={saveClientId}
+          placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+        />
+      </div>
+      <p class="muted">
+        Create a free OAuth client ID in the
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer"
+          >Google Cloud Console</a
+        > (APIs &amp; Services → Credentials → Create Credentials → OAuth client ID → Web
+        application), then add this site's URL under "Authorized JavaScript origins". See SPEC.md
+        for step-by-step notes.
+      </p>
+    {/if}
     <button type="button" class="btn" onclick={handleConnect} disabled={busy}>
-      {busy ? 'Connecting…' : 'Connect Google Drive'}
+      {busy ? 'Connecting…' : hasBakedInClientId ? 'Sign in with Google' : 'Connect Google Drive'}
     </button>
   {:else}
     <p class="pill status-active">Connected</p>
