@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { resetDbForTests } from './db'
-import { exportBundle, importBundle } from './exportImport'
+import { exportBundle, importBundle, resetAllData } from './exportImport'
 import * as repo from './repo'
 
 beforeEach(() => {
@@ -58,5 +58,32 @@ describe('export/import round trip', () => {
 
     const all = await repo.listSpecies()
     expect(all.map((s) => s.commonName)).toEqual(['Old species'])
+  })
+})
+
+describe('resetAllData', () => {
+  it('clears every store', async () => {
+    const site = await repo.getOrCreateDefaultSite('CALL Archive')
+    const room = await repo.createRoom({ siteId: site.id, name: 'Room 1', code: 'R1' })
+    const trap = await repo.createTrapLocation({ room, x: 10, y: 20 })
+    const species = await repo.createSpecies({ commonName: 'Silverfish' })
+    await repo.createSeason({ name: 'Wet', startDate: '2026-11-01', endDate: '2027-04-30' })
+    const check = await repo.createCheck({
+      trapLocationId: trap.id,
+      dateChecked: '2026-06-01',
+      observations: [{ id: 'o1', speciesId: species.id, lifecycleStage: 'adult', quantity: 3 }],
+    })
+    await repo.savePhoto(check.id, new Blob(['x'], { type: 'image/png' }))
+
+    await resetAllData()
+
+    expect(await repo.listRooms(site.id)).toHaveLength(0)
+    expect(await repo.listTrapLocations(room.id)).toHaveLength(0)
+    expect(await repo.listSpecies()).toHaveLength(0)
+    expect(await repo.listSeasons()).toHaveLength(0)
+    expect(await repo.listChecks()).toHaveLength(0)
+
+    const freshSite = await repo.getOrCreateDefaultSite('CALL Archive')
+    expect(freshSite.id).not.toBe(site.id)
   })
 })

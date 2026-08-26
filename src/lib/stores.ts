@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store'
 import * as repo from './repo'
-import { STARTER_SPECIES } from './seedData'
+import sampleData from './sampleData.json'
 import type { Room, Season, Site, Species, TrapCheck, TrapLocation } from './types'
 
 export const site = writable<Site | null>(null)
@@ -31,7 +31,7 @@ export async function loadAll(): Promise<void> {
 
 export async function addStarterSpecies(): Promise<void> {
   const existingNames = new Set((await repo.listSpecies()).map((s) => s.commonName))
-  for (const starter of STARTER_SPECIES) {
+  for (const starter of sampleData.starterSpecies) {
     if (!existingNames.has(starter.commonName)) {
       await repo.createSpecies(starter)
     }

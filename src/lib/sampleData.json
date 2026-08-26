@@ -1,0 +1,114 @@
+{
+  "starterSpecies": [
+    { "commonName": "Silverfish", "scientificName": "Lepisma saccharinum", "category": "Bristletail" },
+    { "commonName": "Firebrat", "scientificName": "Thermobia domestica", "category": "Bristletail" },
+    { "commonName": "Booklouse / Psocid", "scientificName": "Psocoptera spp.", "category": "Psocid" },
+    { "commonName": "German cockroach", "scientificName": "Blattella germanica", "category": "Cockroach" },
+    { "commonName": "American cockroach", "scientificName": "Periplaneta americana", "category": "Cockroach" },
+    { "commonName": "Varied carpet beetle", "scientificName": "Anthrenus verbasci", "category": "Beetle" },
+    { "commonName": "Spider beetle", "scientificName": "Ptinidae spp.", "category": "Beetle" },
+    { "commonName": "Biscuit / drugstore beetle", "scientificName": "Stegobium paniceum", "category": "Beetle" },
+    { "commonName": "Webbing clothes moth", "scientificName": "Tineola bisselliella", "category": "Moth" },
+    { "commonName": "Subterranean termite", "scientificName": "Coptotermes spp.", "category": "Termite" },
+    { "commonName": "Ant (general)", "scientificName": "", "category": "Ant" },
+    { "commonName": "Spider (general)", "scientificName": "", "category": "Spider" }
+  ],
+  "seasons": [
+    { "name": "Wet season", "startDate": "2026-11-01", "endDate": "2027-04-30" },
+    { "name": "Dry season", "startDate": "2026-05-01", "endDate": "2026-10-31" }
+  ],
+  "rooms": [
+    {
+      "name": "Reading Room",
+      "code": "R1",
+      "notes": "Public reading room, high foot traffic",
+      "shapeAspectRatio": { "width": 5, "height": 4 },
+      "traps": [
+        { "x": 12, "y": 18 },
+        { "x": 82, "y": 78 }
+      ]
+    },
+    {
+      "name": "Manuscript Store",
+      "code": "R2",
+      "notes": "Climate-controlled storage, restricted access",
+      "shapeAspectRatio": { "width": 4, "height": 3 },
+      "traps": [
+        { "x": 22, "y": 28 },
+        { "x": 72, "y": 68 }
+      ]
+    },
+    {
+      "name": "Loading Dock",
+      "code": "R3",
+      "notes": "External roller door, receives incoming donations",
+      "shapeAspectRatio": { "width": 3, "height": 2 },
+      "traps": [
+        { "x": 18, "y": 55 },
+        { "x": 78, "y": 35 }
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "room": 0,
+      "trap": 0,
+      "daysSet": 84,
+      "daysChecked": 7,
+      "species": "Silverfish",
+      "lifecycleStage": "adult",
+      "quantity": 3,
+      "notes": ""
+    },
+    {
+      "room": 0,
+      "trap": 1,
+      "daysSet": 84,
+      "daysChecked": 7,
+      "species": "Booklouse / Psocid",
+      "lifecycleStage": "adult",
+      "quantity": 1,
+      "notes": "Near window sill"
+    },
+    {
+      "room": 1,
+      "trap": 0,
+      "daysSet": 56,
+      "daysChecked": 3,
+      "species": "Webbing clothes moth",
+      "lifecycleStage": "larva_nymph",
+      "quantity": 2,
+      "notes": "Near textile boxes"
+    },
+    {
+      "room": 1,
+      "trap": 1,
+      "daysSet": 56,
+      "daysChecked": 3,
+      "species": "Varied carpet beetle",
+      "lifecycleStage": "adult",
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "room": 2,
+      "trap": 0,
+      "daysSet": 30,
+      "daysChecked": 1,
+      "species": "German cockroach",
+      "lifecycleStage": "adult",
+      "quantity": 4,
+      "notes": "Near loading dock door seal"
+    },
+    {
+      "room": 2,
+      "trap": 1,
+      "daysSet": 30,
+      "daysChecked": 1,
+      "species": "Ant (general)",
+      "lifecycleStage": "adult",
+      "quantity": 2,
+      "notes": ""
+    }
+  ]
+}

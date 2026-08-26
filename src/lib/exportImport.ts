@@ -62,23 +62,30 @@ export async function exportBundle(): Promise<DataBundle> {
   }
 }
 
+const ALL_STORES = [
+  'sites',
+  'rooms',
+  'trapLocations',
+  'species',
+  'seasons',
+  'checks',
+  'photos',
+  'photoBlobs',
+] as const
+
+/** Permanently clears all local data (sites, rooms, traps, species, seasons, checks, photos). */
+export async function resetAllData(): Promise<void> {
+  const db = await getDb()
+  const tx = db.transaction(ALL_STORES, 'readwrite')
+  await Promise.all(ALL_STORES.map((store) => tx.objectStore(store).clear()))
+  await tx.done
+}
+
 /** Replaces all local data with the contents of the bundle. */
 export async function importBundle(bundle: DataBundle): Promise<void> {
   const db = await getDb()
-  const tx = db.transaction(
-    ['sites', 'rooms', 'trapLocations', 'species', 'seasons', 'checks', 'photos', 'photoBlobs'],
-    'readwrite',
-  )
-  await Promise.all([
-    tx.objectStore('sites').clear(),
-    tx.objectStore('rooms').clear(),
-    tx.objectStore('trapLocations').clear(),
-    tx.objectStore('species').clear(),
-    tx.objectStore('seasons').clear(),
-    tx.objectStore('checks').clear(),
-    tx.objectStore('photos').clear(),
-    tx.objectStore('photoBlobs').clear(),
-  ])
+  const tx = db.transaction(ALL_STORES, 'readwrite')
+  await Promise.all(ALL_STORES.map((store) => tx.objectStore(store).clear()))
   await Promise.all([
     ...bundle.sites.map((v) => tx.objectStore('sites').put(v)),
     ...bundle.rooms.map((v) => tx.objectStore('rooms').put(v)),

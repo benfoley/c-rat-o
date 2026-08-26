@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as repo from '../repo'
-  import { addStarterSpecies, loadAll, species } from '../stores'
+  import { loadAll, species } from '../stores'
   import type { Species } from '../types'
 
   let commonName = $state('')
@@ -64,9 +64,6 @@
     </div>
     <div class="row">
       <button type="submit" class="btn">Add species</button>
-      <button type="button" class="btn secondary" onclick={addStarterSpecies}
-        >Add starter pest list</button
-      >
     </div>
   </form>
 </div>
