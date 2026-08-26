@@ -8,6 +8,8 @@ vi.mock('./googleDrive', () => ({
   downloadFile: vi.fn(),
   createFile: vi.fn(),
   updateFile: vi.fn(),
+  findOrCreateFolder: vi.fn(),
+  moveFileToFolder: vi.fn(),
 }))
 
 vi.mock('./exportImport', () => ({
@@ -30,17 +32,35 @@ beforeEach(() => {
   window.localStorage.clear()
   vi.clearAllMocks()
   vi.mocked(drive.getCachedAuth).mockReturnValue({ accessToken: 'cached-token', expiresAt: Date.now() + 100_000 })
+  vi.mocked(drive.findOrCreateFolder).mockResolvedValue('folder-1')
 })
 
 describe('pushToDrive', () => {
-  it('creates a new file when none exists yet', async () => {
+  it('creates a new file inside the app folder when none exists yet', async () => {
     vi.mocked(drive.findBackupFile).mockResolvedValue(null)
     vi.mocked(drive.createFile).mockResolvedValue({ id: 'new-id', modifiedTime: '2026-01-01T00:00:00.000Z' })
 
     await pushToDrive(CLIENT_ID)
 
-    expect(drive.createFile).toHaveBeenCalledWith('cached-token', expect.stringContaining('"version":1'))
+    expect(drive.createFile).toHaveBeenCalledWith(
+      'cached-token',
+      expect.stringContaining('"version":1'),
+      'folder-1',
+    )
     expect(drive.updateFile).not.toHaveBeenCalled()
+  })
+
+  it('migrates a legacy root-level backup file into the app folder instead of duplicating it', async () => {
+    vi.mocked(drive.findBackupFile).mockImplementation(async (_token, folderId) =>
+      folderId ? null : { id: 'legacy-file', modifiedTime: '2026-01-01T00:00:00.000Z' },
+    )
+    vi.mocked(drive.updateFile).mockResolvedValue({ id: 'legacy-file', modifiedTime: '2026-01-02T00:00:00.000Z' })
+
+    await pushToDrive(CLIENT_ID, { force: true })
+
+    expect(drive.moveFileToFolder).toHaveBeenCalledWith('cached-token', 'legacy-file', 'folder-1')
+    expect(drive.updateFile).toHaveBeenCalledWith('cached-token', 'legacy-file', expect.any(String))
+    expect(drive.createFile).not.toHaveBeenCalled()
   })
 
   it('updates the existing file when unchanged since last sync', async () => {

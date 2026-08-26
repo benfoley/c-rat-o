@@ -259,9 +259,12 @@ server of ours involved.
   `drive.file` — the app can only see/modify files it created itself, never
   the rest of the user's Drive. Tokens are session-only (not persisted); the
   user reconnects each session (or when the ~1hr token expires).
-- **Storage shape**: one file, `c-rat-o-backup.json`, holding the exact same
-  bundle `exportBundle()` already produces (all data + photos as base64) —
-  found by filename via `drive.file`'s search scope, not a fixed ID.
+- **Storage shape**: one file, `c-rat-o-backup.json`, inside a `c-rat-o`
+  folder in the user's Drive (both created on first use), holding the exact
+  same bundle `exportBundle()` already produces (all data + photos as
+  base64) — found by name via `drive.file`'s search scope, not a fixed ID. A
+  file found at the Drive root from before folder support existed is moved
+  into the folder automatically rather than duplicated.
 - **Sync model**: manual **Push** / **Pull**, not automatic or real-time.
   Push writes the full local state to Drive (creating the file on first use,
   updating it after); Pull downloads and replaces all local state, same as

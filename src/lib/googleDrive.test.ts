@@ -1,11 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   BACKUP_FILENAME,
+  BACKUP_FOLDER_NAME,
   buildFindBackupFileUrl,
+  buildFindFolderUrl,
   buildMultipartCreateBody,
   createFile,
+  createFolder,
   downloadFile,
   findBackupFile,
+  findFolder,
+  findOrCreateFolder,
+  moveFileToFolder,
   updateFile,
 } from './googleDrive'
 
@@ -20,16 +26,26 @@ describe('buildFindBackupFileUrl', () => {
     expect(url).toContain(encodeURIComponent('trashed = false'))
     expect(url).toContain('spaces=drive')
   })
+
+  it('restricts to a parent folder when folderId is given', () => {
+    const url = buildFindBackupFileUrl({ folderId: 'folder-1' })
+    expect(url).toContain(encodeURIComponent(`'folder-1' in parents`))
+  })
 })
 
 describe('buildMultipartCreateBody', () => {
   it('wraps metadata and content in the multipart boundary format', () => {
-    const body = buildMultipartCreateBody('{"a":1}', 'my-file.json')
+    const body = buildMultipartCreateBody('{"a":1}', { filename: 'my-file.json' })
     expect(body).toContain('"name":"my-file.json"')
     expect(body).toContain('"mimeType":"application/json"')
     expect(body).toContain('{"a":1}')
     expect(body.startsWith('--c-rat-o-multipart-boundary')).toBe(true)
     expect(body.endsWith('--c-rat-o-multipart-boundary--')).toBe(true)
+  })
+
+  it('includes parents when given', () => {
+    const body = buildMultipartCreateBody('{"a":1}', { parents: ['folder-1'] })
+    expect(body).toContain('"parents":["folder-1"]')
   })
 })
 
@@ -52,6 +68,66 @@ describe('findBackupFile', () => {
   it('returns null when no file matches', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [] }) }))
     expect(await findBackupFile('token-123')).toBeNull()
+  })
+})
+
+describe('folder helpers', () => {
+  it('buildFindFolderUrl matches the folder name and mimeType', () => {
+    const url = buildFindFolderUrl()
+    expect(url).toContain(encodeURIComponent(`name = '${BACKUP_FOLDER_NAME}'`))
+    expect(url).toContain(encodeURIComponent(`mimeType = 'application/vnd.google-apps.folder'`))
+  })
+
+  it('findFolder returns the first matching folder id', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [{ id: 'folder-1' }] }) }))
+    expect(await findFolder('token-123')).toBe('folder-1')
+  })
+
+  it('findFolder returns null when no folder matches', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [] }) }))
+    expect(await findFolder('token-123')).toBeNull()
+  })
+
+  it('createFolder POSTs the folder metadata and returns the new id', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: 'new-folder' }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const id = await createFolder('token-123')
+
+    expect(id).toBe('new-folder')
+    const [, init] = fetchMock.mock.calls[0]
+    expect(init.method).toBe('POST')
+    expect(init.body).toContain('"mimeType":"application/vnd.google-apps.folder"')
+    expect(init.body).toContain(`"name":"${BACKUP_FOLDER_NAME}"`)
+  })
+
+  it('findOrCreateFolder reuses an existing folder instead of creating a new one', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [{ id: 'existing-folder' }] }) }))
+    expect(await findOrCreateFolder('token-123')).toBe('existing-folder')
+  })
+
+  it('findOrCreateFolder creates a folder when none exists yet', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ files: [] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'new-folder' }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await findOrCreateFolder('token-123')).toBe('new-folder')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('moveFileToFolder', () => {
+  it('PATCHes with addParents/removeParents', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await moveFileToFolder('token-123', 'file-1', 'folder-1')
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toContain('/files/file-1?addParents=folder-1&removeParents=root')
+    expect(init.method).toBe('PATCH')
   })
 })
 

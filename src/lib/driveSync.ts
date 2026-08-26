@@ -51,6 +51,20 @@ async function getAuth(clientId: string, silent: boolean) {
   return drive.requestAccessToken(clientId, { silent })
 }
 
+/**
+ * Finds the backup file inside the app's Drive folder. If it's not there but
+ * exists at the Drive root (from before folder support), it's moved into the
+ * folder rather than left behind or duplicated.
+ */
+async function findOrMigrateBackupFile(accessToken: string, folderId: string): Promise<drive.DriveFileRef | null> {
+  const existing = await drive.findBackupFile(accessToken, folderId)
+  if (existing) return existing
+  const legacy = await drive.findBackupFile(accessToken)
+  if (!legacy) return null
+  await drive.moveFileToFolder(accessToken, legacy.id, folderId)
+  return legacy
+}
+
 export async function connect(clientId: string): Promise<void> {
   setClientId(clientId)
   await drive.requestAccessToken(clientId, { silent: false })
@@ -72,7 +86,8 @@ export class RemoteChangedError extends Error {
 
 export async function pushToDrive(clientId: string, opts: { force?: boolean } = {}): Promise<void> {
   const auth = await getAuth(clientId, true)
-  const existing = await drive.findBackupFile(auth.accessToken)
+  const folderId = await drive.findOrCreateFolder(auth.accessToken)
+  const existing = await findOrMigrateBackupFile(auth.accessToken, folderId)
 
   if (existing && !opts.force && remoteChangedSinceLastSync(getLastSyncedRemoteTime(), existing.modifiedTime)) {
     throw new RemoteChangedError()
@@ -82,13 +97,14 @@ export async function pushToDrive(clientId: string, opts: { force?: boolean } = 
   const content = JSON.stringify(bundle)
   const result = existing
     ? await drive.updateFile(auth.accessToken, existing.id, content)
-    : await drive.createFile(auth.accessToken, content)
+    : await drive.createFile(auth.accessToken, content, folderId)
   recordSync(result.modifiedTime)
 }
 
 export async function pullFromDrive(clientId: string): Promise<void> {
   const auth = await getAuth(clientId, true)
-  const existing = await drive.findBackupFile(auth.accessToken)
+  const folderId = await drive.findOrCreateFolder(auth.accessToken)
+  const existing = await findOrMigrateBackupFile(auth.accessToken, folderId)
   if (!existing) {
     throw new Error('No backup file found in Drive yet — push from another device first.')
   }
@@ -107,7 +123,8 @@ export interface RemoteStatus {
 
 export async function checkRemoteStatus(clientId: string): Promise<RemoteStatus> {
   const auth = await getAuth(clientId, true)
-  const existing = await drive.findBackupFile(auth.accessToken)
+  const folderId = await drive.findOrCreateFolder(auth.accessToken)
+  const existing = await findOrMigrateBackupFile(auth.accessToken, folderId)
   return {
     exists: !!existing,
     modifiedTime: existing?.modifiedTime ?? null,

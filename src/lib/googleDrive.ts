@@ -12,8 +12,10 @@ const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
 const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files'
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const UPLOAD_BOUNDARY = 'c-rat-o-multipart-boundary'
+const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
 
 export const BACKUP_FILENAME = 'c-rat-o-backup.json'
+export const BACKUP_FOLDER_NAME = 'c-rat-o'
 
 interface GoogleTokenResponse {
   access_token?: string
@@ -131,13 +133,16 @@ export interface DriveFileRef {
   modifiedTime: string
 }
 
-export function buildFindBackupFileUrl(filename = BACKUP_FILENAME): string {
-  const q = encodeURIComponent(`name = '${filename}' and trashed = false`)
-  return `${DRIVE_FILES_URL}?q=${q}&fields=files(id,modifiedTime)&spaces=drive`
+export function buildFindBackupFileUrl(opts: { filename?: string; folderId?: string } = {}): string {
+  const filename = opts.filename ?? BACKUP_FILENAME
+  let query = `name = '${filename}' and trashed = false`
+  if (opts.folderId) query += ` and '${opts.folderId}' in parents`
+  return `${DRIVE_FILES_URL}?q=${encodeURIComponent(query)}&fields=files(id,modifiedTime)&spaces=drive`
 }
 
-export async function findBackupFile(accessToken: string): Promise<DriveFileRef | null> {
-  const res = await driveFetch(accessToken, buildFindBackupFileUrl())
+/** Finds the backup file, optionally restricted to a specific parent folder. */
+export async function findBackupFile(accessToken: string, folderId?: string): Promise<DriveFileRef | null> {
+  const res = await driveFetch(accessToken, buildFindBackupFileUrl({ folderId }))
   const data = (await res.json()) as { files?: DriveFileRef[] }
   return data.files?.[0] ?? null
 }
@@ -147,8 +152,15 @@ export async function downloadFile(accessToken: string, fileId: string): Promise
   return res.text()
 }
 
-export function buildMultipartCreateBody(content: string, filename = BACKUP_FILENAME): string {
-  const metadata = { name: filename, mimeType: 'application/json' }
+export function buildMultipartCreateBody(
+  content: string,
+  opts: { filename?: string; parents?: string[] } = {},
+): string {
+  const metadata: { name: string; mimeType: string; parents?: string[] } = {
+    name: opts.filename ?? BACKUP_FILENAME,
+    mimeType: 'application/json',
+  }
+  if (opts.parents) metadata.parents = opts.parents
   return (
     `--${UPLOAD_BOUNDARY}\r\n` +
     `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
@@ -160,11 +172,12 @@ export function buildMultipartCreateBody(content: string, filename = BACKUP_FILE
   )
 }
 
-export async function createFile(accessToken: string, content: string): Promise<DriveFileRef> {
+/** Creates the backup file, inside `folderId` if given. */
+export async function createFile(accessToken: string, content: string, folderId?: string): Promise<DriveFileRef> {
   const res = await driveFetch(accessToken, `${DRIVE_UPLOAD_URL}?uploadType=multipart&fields=id,modifiedTime`, {
     method: 'POST',
     headers: { 'Content-Type': `multipart/related; boundary=${UPLOAD_BOUNDARY}` },
-    body: buildMultipartCreateBody(content),
+    body: buildMultipartCreateBody(content, { parents: folderId ? [folderId] : undefined }),
   })
   return res.json()
 }
@@ -180,4 +193,41 @@ export async function updateFile(accessToken: string, fileId: string, content: s
     },
   )
   return res.json()
+}
+
+export function buildFindFolderUrl(name = BACKUP_FOLDER_NAME): string {
+  const query = `name = '${name}' and mimeType = '${FOLDER_MIME_TYPE}' and trashed = false`
+  return `${DRIVE_FILES_URL}?q=${encodeURIComponent(query)}&fields=files(id)&spaces=drive`
+}
+
+export async function findFolder(accessToken: string, name = BACKUP_FOLDER_NAME): Promise<string | null> {
+  const res = await driveFetch(accessToken, buildFindFolderUrl(name))
+  const data = (await res.json()) as { files?: { id: string }[] }
+  return data.files?.[0]?.id ?? null
+}
+
+export async function createFolder(accessToken: string, name = BACKUP_FOLDER_NAME): Promise<string> {
+  const res = await driveFetch(accessToken, `${DRIVE_FILES_URL}?fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, mimeType: FOLDER_MIME_TYPE }),
+  })
+  const data = (await res.json()) as { id: string }
+  return data.id
+}
+
+/** Finds the app's Drive folder, creating it (once) if it doesn't exist yet. */
+export async function findOrCreateFolder(accessToken: string, name = BACKUP_FOLDER_NAME): Promise<string> {
+  const existing = await findFolder(accessToken, name)
+  if (existing) return existing
+  return createFolder(accessToken, name)
+}
+
+/** Moves a file (assumed to be a root-level item, e.g. from before folder support) into a folder. */
+export async function moveFileToFolder(accessToken: string, fileId: string, folderId: string): Promise<void> {
+  await driveFetch(
+    accessToken,
+    `${DRIVE_FILES_URL}/${fileId}?addParents=${folderId}&removeParents=root&fields=id,parents`,
+    { method: 'PATCH' },
+  )
 }
